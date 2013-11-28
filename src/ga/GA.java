@@ -6,10 +6,10 @@ import java.util.Random;
 
 public class GA {
 
-	private int POPULATION_SIZE = 100;
-	private int GENOME_LENGTH = 3;
+	private int POPULATION_SIZE = 50;
+	private int GENOME_LENGTH = 5;
 	
-	private int ITERATIONS = 10000;
+	private int ITERATIONS = (int)1e6;
 
 	private int MAX_INIT_VALUE = 600;
 	private int MIN_INIT_VALUE = -600;
@@ -25,7 +25,7 @@ public class GA {
 		Random rand = new Random();
 
 		boolean end = false;
-		int counter = ITERATIONS;
+		int counter = 0;
 
 		// Generate random population
 		List<double[]> population = initPopulation();
@@ -92,15 +92,18 @@ public class GA {
 					}
 				}
 			}
-			counter--;
-			if (counter == 0) {
+			counter++;
+			if (counter == ITERATIONS) {
 				end = true;
+			}
+			
+			if (counter % 1e4 == 0 || counter < 10) {
+				System.out.println(counter + " " + values[0]);
+				printGenome(population.get(0));
 			}
 		}
 		System.out.println("Fitness value: " + values[0]);
-		for (int i = 0; i < GENOME_LENGTH; i++) {
-			System.out.println(population.get(0)[i]);
-		}
+		printGenome(population.get(0));
 		return null;
 	}
 
@@ -147,17 +150,24 @@ public class GA {
 		return mutatedPopulation;
 	}
 	
-	public double fitness(double[] solution) {
-		double sumResult = 0.0;
+	private double fitness(double[] solution) {
+		double result = 1;
+		double sum = 0;
+		double prod = 1;
 		for (int i = 0; i < solution.length; i++) {
-			sumResult += solution[i] * solution[i] / 4000;
+			sum += solution[i] * solution[i];
+			prod *= Math.cos(solution[i] / Math.sqrt(i + 1));
 		}
-		
-		double mulResult = 1.0;
-		for (int i = 0; i < solution.length; i++) {
-			mulResult *= Math.cos(solution[i] / Math.sqrt(i + 1));
-		}		
-		
-		return sumResult - mulResult + 1;
+
+		result += sum / 4000 - prod;
+		return result;
+	}
+	
+	private void printGenome(double[] solution) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < GENOME_LENGTH; i++) {
+			sb.append(solution[i] + " | ");
+		}
+		System.out.println(sb.toString());
 	}
 }
